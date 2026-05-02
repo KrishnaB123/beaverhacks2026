@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "SpotifyTrip",
-    "slug": "SpotifyTrip",
+    "name": "beaverhacks2026",
+    "slug": "beaverhacks2026",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "spotifytrip",
+    "scheme": "beaverhacks2026",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
