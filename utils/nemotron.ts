@@ -19,7 +19,7 @@ export const getMusicFromLocation = async (
   const response = await axios.post(
     'https://integrate.api.nvidia.com/v1/chat/completions',
     {
-model: 'nvidia/nemotron-nano-8b-instruct'      ,
+model: 'meta/llama-3.1-8b-instruct',
 messages: [
         {
           role: 'system',
