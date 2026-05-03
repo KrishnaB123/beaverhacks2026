@@ -7,17 +7,19 @@ export interface SongRecommendation {
   artist: string;
 }
 
+// Tracks all previously suggested songs globally
+const suggestedSongs: SongRecommendation[] = [];
+
 export const getMusicFromLocation = async (
   features: string[],
-  previousSongs: SongRecommendation[] = []
 ): Promise<SongRecommendation> => {
   const featureList = features.join(', ');
-  const avoidList = previousSongs.map(s => `"${s.song}" by ${s.artist}`).join(', ');
+  const avoidList = suggestedSongs.map(s => `"${s.song}" by ${s.artist}`).join(', ');
 
   const response = await axios.post(
     'https://integrate.api.nvidia.com/v1/chat/completions',
     {
-      model: 'nvidia/nemotron-mini-4b-instruct',
+      model: 'meta/llama-3.1-8b-instruct',
       messages: [
         {
           role: 'system',
@@ -28,11 +30,11 @@ export const getMusicFromLocation = async (
         },
         {
           role: 'user',
-          content: `I am near these geographic features and landmarks: ${featureList}. Recommend a real specific song that would be on spotify that fits this landscape.${avoidList ? ` Do NOT suggest these songs: ${avoidList}.` : ''}`
+          content: `I am near these geographic features and landmarks: ${featureList}. Recommend a real specific song on Spotify that fits this landscape. ${avoidList ? `Do NOT suggest any of these previously suggested songs: ${avoidList}.` : ''} Pick something different and unexpected each time.`
         }
       ],
       max_tokens: 100,
-      temperature: 0.5,
+      temperature: 0.9,
     },
     {
       headers: {
@@ -43,23 +45,23 @@ export const getMusicFromLocation = async (
   );
 
   const raw = response.data.choices[0].message.content.trim();
-  
+
   try {
-  // Extract song and artist with regex instead of JSON parse
-  const songMatch = raw.match(/"song":\s*"([^"]+)"/);
-  const artistMatch = raw.match(/"artist":\s*"([^"]+)"/);
+    const songMatch = raw.match(/"song":\s*"([^"]+)"/);
+    const artistMatch = raw.match(/"artist":\s*"([^"]+)"/);
 
-  const song = songMatch?.[1] ?? '';
-  const artist = artistMatch?.[1] ?? '';
+    const song = songMatch?.[1] ?? '';
+    const artist = artistMatch?.[1] ?? '';
 
-  console.log('Parsed song:', song, 'artist:', artist);
+    console.log('Parsed song:', song, 'artist:', artist);
 
-  if (song && artist) {
-    return { song, artist };
+    if (song && artist) {
+      suggestedSongs.push({ song, artist });
+      return { song, artist };
+    }
+    return { song: raw, artist: '' };
+  } catch {
+    console.log('Failed to parse:', raw);
+    return { song: raw, artist: '' };
   }
-  return { song: raw, artist: '' };
-} catch {
-  console.log('Failed to parse:', raw);
-  return { song: raw, artist: '' };
-}
 };
