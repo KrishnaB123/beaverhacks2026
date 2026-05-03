@@ -1,3 +1,5 @@
+import { addToQueue, searchSpotifyTrack } from '@/utils/spotify';
+
 import { getMusicFromLocation } from '@/utils/nemotron';
 import { getNearbyFeatures } from '@/utils/overpass';
 
@@ -47,6 +49,7 @@ export default function App() {
   }, [response]);
 
   useEffect(() => {
+    if (!token) return;
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -57,18 +60,33 @@ export default function App() {
       const loc = await Location.getCurrentPositionAsync({});
       setLocation(loc);
 
-      // replace your temp test with this:
-const features = await getNearbyFeatures(loc.coords.latitude, loc.coords.longitude);
+      const features = await getNearbyFeatures(loc.coords.latitude, loc.coords.longitude);
 console.log('Nearby features:', features);
-const query = await getMusicFromLocation(features);
-console.log('Music query:', query);
+
+const recommendation = await getMusicFromLocation(features);
+console.log('Nemotron suggests:', recommendation.song, '-', recommendation.artist);
+
+if (token) {
+  const track = await searchSpotifyTrack(recommendation.song, recommendation.artist, token);
+  if (track) {
+    console.log('Found on Spotify:', track.name, '-', track.artist);
+    const success = await addToQueue(track.uri, token);
+    if (success) {
+      console.log('✅ Added to queue!');
+    } else {
+      console.log('❌ Failed to add to queue - is Spotify open and playing?');
+    }
+  } else {
+    console.log('❌ Nothing found on Spotify');
+  }
+}
       // Watch location as user moves
       Location.watchPositionAsync(
         { accuracy: Location.Accuracy.High, distanceInterval: 100 },
         (newLoc) => setLocation(newLoc)
       );
     })();
-  }, []);
+  }, [token]);
 
   const exchangeCodeForToken = async (code: string) => {
     const result = await AuthSession.exchangeCodeAsync(
