@@ -19,8 +19,8 @@ export const getMusicFromLocation = async (
   const response = await axios.post(
     'https://integrate.api.nvidia.com/v1/chat/completions',
     {
-      model: 'meta/llama-3.1-8b-instruct',
-      messages: [
+model: 'nvidia/nemotron-nano-8b-instruct'      ,
+messages: [
         {
           role: 'system',
           content: `You are a music recommendation assistant. Given nearby geographic features and landmarks, recommend a real specific song that fits the vibe of that landscape. 
