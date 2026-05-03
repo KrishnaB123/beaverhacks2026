@@ -1,8 +1,12 @@
+import { getMusicFromLocation } from '@/utils/nemotron';
+import { getNearbyFeatures } from '@/utils/overpass';
+
 import * as AuthSession from 'expo-auth-session';
 import * as Location from 'expo-location';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -53,6 +57,11 @@ export default function App() {
       const loc = await Location.getCurrentPositionAsync({});
       setLocation(loc);
 
+      // replace your temp test with this:
+const features = await getNearbyFeatures(loc.coords.latitude, loc.coords.longitude);
+console.log('Nearby features:', features);
+const query = await getMusicFromLocation(features);
+console.log('Music query:', query);
       // Watch location as user moves
       Location.watchPositionAsync(
         { accuracy: Location.Accuracy.High, distanceInterval: 100 },
